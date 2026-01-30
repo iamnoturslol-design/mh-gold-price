@@ -1,235 +1,42 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>India Gold Price Live - MH</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-    .card {
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(10px);
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-      max-width: 400px;
-      width: 100%;
-      text-align: center;
-    }
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-      color: #333;
-      font-weight: 700;
-    }
-    .price {
-      font-size: 36px;
-      font-weight: 900;
-      margin: 20px 0;
-      color: #2c3e50;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-    }
-    .status {
-      font-size: 18px;
-      font-weight: 600;
-      margin: 15px 0;
-      padding: 10px;
-      border-radius: 10px;
-      transition: all 0.3s ease;
-    }
-    .status.up {
-      background: #d4edda;
-      color: #155724;
-      border: 2px solid #c3e6cb;
-    }
-    .status.down {
-      background: #f8d7da;
-      color: #721c24;
-      border: 2px solid #f5c6cb;
-    }
-    .status.same {
-      background: #e2e3e5;
-      color: #383d41;
-      border: 2px solid #d6d8db;
-    }
-    .meta {
-      font-size: 14px;
-      color: #666;
-      margin-top: 20px;
-      line-height: 1.6;
-    }
-    .interval-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 25px;
-    }
-    button {
-      padding: 12px 20px;
-      border-radius: 25px;
-      border: none;
-      cursor: pointer;
-      background: linear-gradient(45deg, #007bff, #0056b3);
-      color: white;
-      font-size: 14px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,123,255,0.3);
-    }
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,123,255,0.4);
-    }
-    button.active {
-      background: linear-gradient(45deg, #28a745, #20c997);
-      box-shadow: 0 4px 15px rgba(40,167,69,0.4);
-    }
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #007bff;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
-      display: none;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    @media (max-width: 480px) {
-      .card { padding: 20px; }
-      .price { font-size: 28px; }
-      h1 { font-size: 20px; }
-    }
-  </style>
+    <title>MH Gold Price Tracker</title>
+    <style>
+        body { font-family: Arial; text-align: center; padding: 50px; background: #f0f8ff; }
+        .price { font-size: 48px; color: #d4af37; font-weight: bold; }
+        .loading { color: #666; }
+        button { padding: 10px 20px; background: #ff6b35; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
 </head>
 <body>
-  <div class="card">
-    <h1>🇮🇳 India Gold Price Live (24K)</h1>
-    <div class="spinner" id="spinner"></div>
-    <div class="price" id="price">₹ 0.00 / gram</div>
-    <div class="status same" id="status">Loading live data...</div>
-    <div class="meta">
-      Last updated: <span id="lastUpdated">-</span><br>
-      Update every: <span id="intervalText">1 minute</span>
-    </div>
-    <div class="interval-buttons">
-      <button id="minBtn" class="active">🔄 Minute</button>
-      <button id="hourBtn">⏰ Hour</button>
-    </div>
-  </div>
+    <h1>🪙 Live Gold Price (MCX)</h1>
+    <div id="price" class="loading">Loading...</div>
+    <br>
+    <button onclick="updatePrice()">Refresh</button>
 
-  <script>
-    // FREE Indian Gold Price API (no key needed)
-    const API_URL = 'https://api.goldapi.io/v1/price/XAU/INR';
-    
-    let previousPrice = null;
-    let timerId = null;
-    let currentIntervalMs = 60 * 1000; // 1 minute default
-    let isLoading = false;
-
-    const elements = {
-      price: document.getElementById('price'),
-      status: document.getElementById('status'),
-      lastUpdated: document.getElementById('lastUpdated'),
-      intervalText: document.getElementById('intervalText'),
-      spinner: document.getElementById('spinner'),
-      minBtn: document.getElementById('minBtn'),
-      hourBtn: document.getElementById('hourBtn')
-    };
-
-    async function fetchGoldPrice() {
-      if (isLoading) return;
-      isLoading = true;
-      
-      elements.spinner.style.display = 'block';
-      elements.status.textContent = 'Fetching latest price...';
-      elements.status.className = 'status same';
-
-      try {
-        const response = await fetch(API_URL);
-        if (!response.ok) throw new Error('API unavailable');
+    <script>
+    async function updatePrice() {
+        document.getElementById('price').innerHTML = 'Loading...';
         
-        const data = await response.json();
-        const price = parseFloat(data.price_gram_24k || data.price || 0);
-        
-        if (isNaN(price) || price <= 0) {
-          throw new Error('Invalid price data');
+        // FREE & Accurate MCX Gold API (No key needed)
+        try {
+            const response = await fetch('https://api.goldpricez.com/v1/gold/mcx/24h/INR');
+            const data = await response.json();
+            
+            const gold10g = (data.data[0].s * 10).toLocaleString('en-IN');
+            document.getElementById('price').innerHTML = `₹${gold10g} <small>/10g</small>`;
+        } catch {
+            // Backup API - Metals-API (Free)
+            fetch('https://metals-api.com/api/latest?access_key=demo&base=INR&symbols=XAU')
+            .then(r=>r.json()).then(data=>{
+                const price = (1/data.rates.XAU * 10).toLocaleString('en-IN');
+                document.getElementById('price').innerHTML = `₹${price} <small>/10g</small>`;
+            });
         }
-
-        updateUI(price);
-      } catch (error) {
-        // Fallback to demo prices if API fails
-        const demoPrices = [9450, 9465, 9440, 9480, 9475];
-        const randomPrice = demoPrices[Math.floor(Math.random() * demoPrices.length)];
-        updateUI(randomPrice);
-        elements.status.textContent = 'Using demo mode (API temporarily unavailable)';
-      } finally {
-        elements.spinner.style.display = 'none';
-        isLoading = false;
-      }
     }
-
-    function updateUI(currentPrice) {
-      elements.price.textContent = `₹ ${currentPrice.toLocaleString('en-IN', { 
-        minimumFractionDigits: 0, 
-        maximumFractionDigits: 0 
-      })} / gram`;
-
-      if (previousPrice === null) {
-        elements.status.textContent = '✅ First price loaded!';
-        elements.status.className = 'status same';
-      } else if (currentPrice > previousPrice) {
-        elements.status.innerHTML = '📈 <strong>Price is UP</strong> (+₹' + 
-          ((currentPrice - previousPrice).toFixed(0)) + ')';
-        elements.status.className = 'status up';
-      } else if (currentPrice < previousPrice) {
-        elements.status.innerHTML = '📉 <strong>Price is DOWN</strong> (-₹' + 
-          ((previousPrice - currentPrice).toFixed(0)) + ')';
-        elements.status.className = 'status down';
-      } else {
-        elements.status.textContent = '➡️ Price unchanged';
-        elements.status.className = 'status same';
-      }
-
-      previousPrice = currentPrice;
-      elements.lastUpdated.textContent = new Date().toLocaleString('en-IN');
-    }
-
-    function startAutoUpdate(intervalMs) {
-      if (timerId) clearInterval(timerId);
-      currentIntervalMs = intervalMs;
-      elements.intervalText.textContent = intervalMs === 60000 ? '1 minute' : '1 hour';
-      timerId = setInterval(fetchGoldPrice, currentIntervalMs);
-      fetchGoldPrice(); // Load immediately
-    }
-
-    // Button event listeners
-    elements.minBtn.onclick = () => {
-      elements.minBtn.classList.add('active');
-      elements.hourBtn.classList.remove('active');
-      startAutoUpdate(60 * 1000); // 1 minute
-    };
-
-    elements.hourBtn.onclick = () => {
-      elements.hourBtn.classList.add('active');
-      elements.minBtn.classList.remove('active');
-      startAutoUpdate(60 * 60 * 1000); // 1 hour
-    };
-
-    // Start automatically
-    startAutoUpdate(currentIntervalMs);
-  </script>
+    updatePrice(); // Auto load
+    setInterval(updatePrice, 300000); // Update every 5 min
+    </script>
 </body>
 </html>
